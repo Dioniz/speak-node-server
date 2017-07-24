@@ -23,7 +23,11 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $usernameInput.focus();
 
-  var socket = io();
+  var socket = io.connect("localhost:3000");
+
+  socket.on('connect', function(){
+	socket.emit('join room', "1");
+  });
 
   function addParticipantsMessage (data) {
     var message = '';
@@ -47,7 +51,7 @@ $(function() {
       $currentInput = $inputMessage.focus();
 
       // Tell the server your username
-      socket.emit('add user', username);
+      socket.emit('add user', username, '1');
     }
   }
 
@@ -64,7 +68,7 @@ $(function() {
         message: message
       });
       // tell server to execute 'new message' and send along one parameter
-      socket.emit('new message', message);
+      socket.emit('new message', message, '1');
     }
   }
 
@@ -154,7 +158,7 @@ $(function() {
     if (connected) {
       if (!typing) {
         typing = true;
-        socket.emit('typing');
+        socket.emit('typing', '1');
       }
       lastTypingTime = (new Date()).getTime();
 
@@ -162,7 +166,7 @@ $(function() {
         var typingTimer = (new Date()).getTime();
         var timeDiff = typingTimer - lastTypingTime;
         if (timeDiff >= TYPING_TIMER_LENGTH && typing) {
-          socket.emit('stop typing');
+          socket.emit('stop typing', '1');
           typing = false;
         }
       }, TYPING_TIMER_LENGTH);
@@ -199,7 +203,7 @@ $(function() {
     if (event.which === 13) {
       if (username) {
         sendMessage();
-        socket.emit('stop typing');
+        socket.emit('stop typing', '1');
         typing = false;
       } else {
         setUsername();
@@ -229,7 +233,7 @@ $(function() {
   socket.on('login', function (data) {
     connected = true;
     // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+    var message = "Welcome to Socket.IO Chat – Room 1";
     log(message, {
       prepend: true
     });
@@ -271,7 +275,7 @@ $(function() {
   socket.on('reconnect', function () {
     log('you have been reconnected');
     if (username) {
-      socket.emit('add user', username);
+      socket.emit('add user', username, '1');
     }
   });
 
